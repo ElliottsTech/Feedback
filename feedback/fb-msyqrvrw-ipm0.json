@@ -1,0 +1,66 @@
+{
+  "id": "fb-msyqrvrw-ipm0",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "Toggle AI usage display between token counts and dollar values (header + stats)",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "\"At the top of the screen, there is Usage counters for the AI. Usage calls; these are shown in dollar values, but we have a coding plan so they should show token count instead."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks — that's clear. Since you're on a coding plan (Anthropic, I'm guessing?), the dollar figures don't mean much and token counts would track your actual usage better.\n\nOne quick thing to confirm: do you want the token count to replace the dollar value entirely, or show alongside it (in case you ever switch providers off the plan)?"
+    },
+    {
+      "role": "user",
+      "content": "replace it. yes, everywhere like on the stats page too. lets have it as a toggle that can be switched, if im using a coding plan itll be Tok, if i use API billing then itll be $."
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — a toggle between token count and dollar value for the AI usage counters, covering the header usage display and the stats page, so it works for both coding-plan and API-billing setups. That's everything I need — you can press Submit now."
+    },
+    {
+      "role": "user",
+      "content": "is there any other additions you can expand on this with?"
+    },
+    {
+      "role": "assistant",
+      "content": "A couple of natural extensions worth considering mentioning in your report: per-provider/per-model token breakdowns on the stats page (since token costs vary wildly between models), and separating input vs output tokens — that's usually the interesting split for transcription+summary workloads. Happy to note those as optional extras if you like, but the core toggle is clear as-is.\n\nI have what I need — you can press Submit now."
+    }
+  ],
+  "analysis": {
+    "summary": "Toggle AI usage display between token counts and dollar values (header + stats)",
+    "sections": [
+      "stats",
+      "portal"
+    ],
+    "clarifyingQuestions": [
+      "Should the toggle be per-user (in My settings) or a global server setting under the AI tab?",
+      "Should token totals also split input vs output tokens, or a single combined count for now?"
+    ],
+    "likelyCauses": [],
+    "workarounds": [
+      "Read raw token counts from the Costs sub-tab on the Stats page, which uses the per-call token accounting, while the header still shows dollars."
+    ],
+    "developerBrief": "# Toggle AI usage display: token count vs dollar value\n\n## What was reported\nThe reporter is on a coding plan (no per-call billing), so the dollar figures in the AI usage counters at the top of the screen are meaningless to them. They want a toggle: when on a coding plan, usage shows token counts; when on API billing, it shows dollars. It should apply \"everywhere\", explicitly including the Stats page — i.e. the header usage display and stats views.\n\n## Where it likely lives\n- Header usage counters: rendered client-side in the portal shell — `public/index.html` (single SPA; the top-of-screen usage widget), fed by `GET /api/usage`.\n- Stats page Costs sub-tab and usage aggregation: `src/lagstats.js` plus aggregation in `src/server.js`; rate card/pricing in `src/config.js`; token counts per call already exist alongside the AI usage/cost accounting (per stats section context).\n- Toggle persistence: two natural homes — per-user prefs via `POST /api/me/prefs` (My settings overlay, portal shell) or a global AI-tab setting. Reporter hasn't specified; per-user is safer since different staff may have different views.\n\n## Reproduction / current behaviour (assumed)\n1. Log in; the header shows AI usage in dollar values from `/api/usage`.\n2. Open Stats → Costs; dollar figures derived from the rate card in `src/config.js` (estimates, not billed).\n3. Token counts are already recorded per call in the usage accounting, so the data for a token view already exists server-side.\n\n## Design options and trade-offs\n1. **Client-side toggle, per-user pref (recommended)** — add a \"usage units\" pref (`tokens` | `dollars`) to `/api/me/prefs`; the SPA formats usage numbers from `/api/usage` and stats responses accordingly. No backend calculation changes needed if token totals are already exposed; if not, extend `/api/usage` and `/api/stats` to include token totals. Pro: zero risk to cost accounting, each user chooses. Con: two users see different units.\n2. **Global server setting (AI tab)** — one switch for everyone, simpler UI. Con: mixed billing setups per user can't differ; reporter's wording (\"if I'm using a coding plan\") hints personal, so per-user fits better.\n3. **Show both** — rejected by reporter (\"replace it\"), but a small secondary figure is a cheap fallback if the toggle proves confusing.\n\nOptional extensions raised in intake (mark as out-of-scope or follow-ups): per-provider/per-model token breakdowns, and input vs output token split — the data model likely already separates these given per-model rate-card accounting.\n\n## Suggested approach\n1. Inspect `/api/usage` and `/api/stats` responses in `src/server.js` / `src/lagstats.js` — confirm token totals (and input/output split) are exposed; if not, add them.\n2. Add the per-user pref to the My settings overlay and `/api/me/prefs`.\n3. In `public/index.html`, introduce a shared formatter for usage values used by the header widget and the Stats Costs sub-tab, switching on the pref.\n4. Keep all dollar estimation logic intact — the toggle is presentation-only.\n\n## Acceptance criteria\n- A user can switch between token counts and dollar values for the header usage counters and Stats usage/cost figures.\n- Choice persists per user across sessions.\n- Dollar figures remain available when toggled back; underlying cost accounting unchanged.\n- Coding-plan users can see token totals with no dollar figure shown.\n\n## Unverified assumptions\n- `/api/usage` currently returns (or can cheaply return) token totals; the stats context says per-call token counts exist in the usage accounting, but the API surface is unconfirmed.\n- The header usage widget is part of `public/index.html`'s shell (likely, since it's top-of-screen chrome), not a section-specific view.\n- Whether the reporter wants the toggle per-user or global is unresolved — a clarifying question is attached.",
+    "usage": {
+      "input_tokens": 414,
+      "output_tokens": 1017,
+      "cache_read_input_tokens": 1472,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Dean",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-18T14:12:16.412Z",
+  "updatedAt": "2026-08-18T14:12:16.412Z"
+}
