@@ -1,0 +1,65 @@
+{
+  "id": "fb-mszqiojt-6m22",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "Feature request: search/filter across review pending and history lists",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "add a search to the pending and history items list"
+    },
+    {
+      "role": "assistant",
+      "content": "Good idea — a search box on the review list (pending + history) would make finding past calls much quicker. One thing that would shape how it's built: what would you most want to search by — caller name/number, ticket number, agent, or the summary text?"
+    },
+    {
+      "role": "user",
+      "content": "Search but name, number, machine name, client name, site, tech, date, time,"
+    },
+    {
+      "role": "assistant",
+      "content": "That's a clear picture — searching across caller name/number, machine, client, site, tech, and date/time on the review list. That's everything I need; the rest can be worked out by the team.\n\nOne note on my best read: since the review queue is a single-page list fed from flat JSON, a client-side filter across those fields should be straightforward — the main design question will be how dates/times are searched (free-text vs a date range picker).\n\nYou're welcome to add more detail first, but I have what I need — press Submit whenever you're ready."
+    },
+    {
+      "role": "user",
+      "content": "Search als by keywords from summary and transcripts."
+    },
+    {
+      "role": "assistant",
+      "content": "Adding summary and transcript keywords makes sense — though transcripts can be long, so the team will likely debounce the search or index the text rather than filter it live. Noted as part of the request.\n\nI have everything I need — press Submit whenever you're ready."
+    }
+  ],
+  "analysis": {
+    "summary": "Feature request: search/filter across review pending and history lists",
+    "sections": [
+      "review"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [],
+    "workarounds": [
+      "Use the existing technician filter and sort controls to narrow the list before scanning manually.",
+      "Browser in-page find (Ctrl+F) on rendered list text for quick keyword checks."
+    ],
+    "developerBrief": "# Feature: search box for Review queue call list (Pending + History)\n\n## What was reported\nReporter asked to \"add a search to the pending and history items list\", searching by: caller name, caller number, machine name, client name, site, tech, and date/time. They later added \"search also by keywords from summary and transcripts\".\n\n## Where it likely lives\n- Section: **review** (Review queue — call list, Pending/History sub-tabs).\n- Frontend: `public/index.html` (plain JS SPA, hash routing, no build step) — the list rendering and its existing technician filter/sort controls.\n- Backend (if server-side search is chosen): `src/server.js` (GET `/api/reviews`), `src/store.js` (review store over flat JSON).\n\n## Design options and trade-offs\n1. **Client-side filter (recommended first step)** — the list is already loaded in the SPA; filter rows in memory on the typed query. Simple, instant, works for all listed fields plus summary text. Transcript text may not be in the list payload (detail pane fetches it per call — unverified whether `/api/reviews` includes transcripts); if not, transcript search either requires per-call fetches or a server-side endpoint.\n2. **Server-side search on GET /api/reviews** — add `?q=` (and optional `from`/`to` date params) in `src/server.js`, matching fields in `src/store.js`. Scales to large histories and enables transcript search server-side, but more work and needs indexing thought for long transcripts.\n3. **Hybrid** — client-side for list-visible fields (caller, client, tech, time, summary snippet), server-side transcript keyword search.\n\nDate/time search: free-text matching against the displayed timestamp is quickest to ship; a date-range picker is more precise but heavier. Could ship free-text first, range picker later.\n\n## Suggested approach\n1. Inspect what `GET /api/reviews` returns per row — confirm which fields (machine name, site, transcript presence) are already in the payload.\n2. Add a search input above the Pending/History list in `public/index.html`, debounced (~250ms).\n3. Filter on: caller name/number, machine name, client, site, technician, date/time string, summary text; case-insensitive substring match.\n4. If transcripts aren't in the payload, add a server-side `q` param to `/api/reviews` in `src/server.js`/`src/store.js` that also matches transcript text.\n5. Preserve existing technician filter/sort interaction (search should compose with them).\n\n## Acceptance criteria\n- A single search box filters both Pending and History sub-tabs.\n- Matches (case-insensitive) caller name, caller number, machine name, client name, site, tech, date/time, summary keywords, and transcript keywords.\n- Search composes with the existing technician filter and sort controls; clearing the box restores the full list.\n- Typing is debounced so long transcript matching doesn't freeze the UI.\n\n## Unverified assumptions\n- Machine name and site are captured fields on each review record (plausible given the detail pane shows client/contact data, but not confirmed in section context).\n- Transcript text is not included in the list endpoint payload (assumed; verify step 1).\n- Field names on the stored records (e.g. caller vs from, technician vs agent) need confirming in `src/store.js`.",
+    "usage": {
+      "input_tokens": 431,
+      "output_tokens": 840,
+      "cache_read_input_tokens": 1472,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Camille",
+  "votes": {
+    "up": [
+      "elliotts-tech-846378521c"
+    ],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-19T06:52:53.321Z",
+  "updatedAt": "2026-08-19T06:53:38.277Z"
+}
