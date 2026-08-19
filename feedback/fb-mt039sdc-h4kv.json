@@ -1,0 +1,55 @@
+{
+  "id": "fb-mt039sdc-h4kv",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "Feature: show missed calls grouped in Voicemail tab for follow-up",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Move missed calls to the voicemail tab"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — so missed calls currently appear in the Review queue (review tab) and you'd rather they only show up under Voicemail.\n\nQuick question so I capture it right: what's the main pain — missed calls without any recording cluttering the review list, or do you want all missed calls (with or without voicemail) grouped in the Voicemail tab instead?"
+    },
+    {
+      "role": "user",
+      "content": "They should be grouped with the voicemails so they stand out a bit more and will be actioned similarly"
+    },
+    {
+      "role": "assistant",
+      "content": "That makes sense — missed calls grouped alongside voicemails so they get the same \"needs a follow-up\" treatment, rather than getting lost in the call review list.\n\nI've got what I need — you can press Submit now. Anything else you'd like to add first (e.g. whether they should disappear from the Review queue entirely, or appear in both) is welcome, but no need."
+    }
+  ],
+  "analysis": {
+    "summary": "Feature: show missed calls grouped in Voicemail tab for follow-up",
+    "sections": [
+      "review",
+      "voicemail"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [],
+    "workarounds": [
+      "Use the free-text search or technician filter in the Review queue to surface missed calls manually until this ships."
+    ],
+    "developerBrief": "# Feature: group missed calls under the Voicemail tab\n\n## What was reported\nThe reporter wants missed calls to be grouped with voicemails in the Voicemail tab, so they \"stand out a bit more and will be actioned similarly\" — i.e. missed calls should get the same \"needs a follow-up\" treatment as voicemails rather than getting lost in the Review call list. The intake conversation did **not** settle whether missed calls should disappear from the Review queue entirely or appear in both places.\n\n## Where it likely lives\n- **Voicemail tab**: `src/voicemail.js`, `src/voicemail-store.js`, `src/mailbox.js`, PBX adapters `src/vodia.js` / `src/threecx.js`; endpoints `GET /api/voicemail/status`, `GET /api/reviews/:id/voicemail-audio`.\n- **Review queue**: `src/server.js` (routes), `src/store.js` (review store); `GET /api/reviews` feeds the call list where missed calls currently appear.\n- Frontend: `public/index.html` (plain JS, hash routing) — voicemail list rendering and review list rendering.\n\n## Reproduction / current behaviour (assumed)\n1. A call comes in and is missed (no answer, possibly no voicemail left).\n2. The CDR webhook creates a review entry; it appears in the Review queue alongside completed work calls.\n3. The Voicemail tab only shows messages that exist in a PBX mailbox; missed calls without voicemail are invisible there.\n\n## Design options and trade-offs\n**Option A — unified \"Follow-ups\" voicemail view (recommended):** Extend `GET /api/voicemail/status` (or add a new list endpoint) to merge mailbox voicemails with missed-call review records (identified from the CDR disposition in the review store — the exact missed-call marker in `src/store.js` needs inspection; assume a call state/duration/disposition field exists). Render missed calls as rows in the Voicemail list, linking to the existing review detail pane (`GET /api/reviews/:id`, `?q=` deep link). Keep them in the Review queue unchanged — lowest risk, and technicians who work from Review lose nothing. Trade-off: duplication between tabs.\n\n**Option B — move entirely:** Exclude missed calls from `GET /api/reviews` and show them only in Voicemail. Cleaner lists, but breaks the existing approval flow for missed calls (contact match, note posting) unless the Voicemail tab gains that UI, and the reporter never confirmed removal.\n\n**Option C — flag + filter:** Add a \"missed\" state badge and filter in the Review queue plus a Voicemail-tab section that queries the same flag. Least backend change, but doesn't fully deliver the \"grouped with voicemails\" ask.\n\n## Suggested approach\n1. Inspect `src/store.js` and the CDR handling in `src/vodia.js`/`src/threecx.js` to determine how \"missed\" is (or could be) recorded on a review record.\n2. Extend the voicemail list endpoint to join missed-call reviews by extension + timestamp, reusing the existing voicemail↔review matching logic (timestamp-window based — note the documented gotcha about mis-pairing quick successive messages; missed calls with no voicemail have no pairing conflict).\n3. Render missed calls in the Voicemail list with a distinct badge (\"no voicemail\") and a link into the review detail pane for actioning.\n4. Keep Review queue behaviour unchanged (Option A) unless product decides otherwise.\n\n## Acceptance criteria\n- Missed calls (with or without a voicemail) appear in the Voicemail tab list, clearly badged, newest first alongside voicemails.\n- Selecting a missed call lets the technician action it (open the review detail / approve flow) the same way as from Review.\n- Existing voicemail listing, playback proxy, and read/unread behaviour are unchanged.\n- No customer names/numbers regressed in list rendering.\n\n## Unverified assumptions\n- Whether missed calls should be removed from the Review queue or shown in both places (reporter left this open; Option A keeps both).\n- That the CDR data available to the service reliably distinguishes missed calls (disposition/answer state) and includes the target extension so they can be grouped per mailbox.\n- That voicemails from a missed call can be matched to the missed-call row using the existing timestamp+caller matching.",
+    "usage": {
+      "input_tokens": 767,
+      "output_tokens": 1057,
+      "cache_read_input_tokens": 1408,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Dean",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-19T12:49:53.376Z",
+  "updatedAt": "2026-08-19T12:49:53.376Z"
+}
