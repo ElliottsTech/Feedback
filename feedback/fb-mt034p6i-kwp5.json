@@ -1,0 +1,60 @@
+{
+  "id": "fb-mt034p6i-kwp5",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "Mobile: back button too close to caller name; rename from 'all calls'",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "In the mobile view, the \"all calls\" back button from the call details page is too close to the name/number. It just needs to move up a few pixels to be evenly spaced between the Top of the modal and the name/number"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — on mobile, the back button in the call details view sits too close to the name/number and should sit roughly midway between the top of the modal and that text. That's clear enough to file as-is; you're welcome to add a screenshot or more detail first if you like. Press Submit when ready."
+    },
+    {
+      "role": "user",
+      "content": "And it's not all calls, it should be renamed to \"all\", \"back\" or \"all items\""
+    }
+  ],
+  "analysis": {
+    "summary": "Mobile: back button too close to caller name; rename from 'all calls'",
+    "sections": [
+      "review",
+      "portal"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [
+      {
+        "cause": "Mobile styling of the call detail pane header lacks adequate top padding/margin, so the back control crowds the name/number",
+        "confidence": "high"
+      },
+      {
+        "cause": "Back button label is hardcoded as 'all calls' in the detail-pane template",
+        "confidence": "high"
+      }
+    ],
+    "workarounds": [
+      "Use the desktop/tablet layout where the detail pane is a side column rather than a modal"
+    ],
+    "developerBrief": "# Mobile call-detail modal: back button spacing + label rename\n\n**What was reported**\n- On mobile, in the call detail view, the back button (labelled \"all calls\") sits too close to the caller name/number. It should sit roughly evenly spaced between the top of the modal and the name/number (\"move up a few pixels\").\n- The label \"all calls\" should be renamed — reporter suggests \"all\", \"back\", or \"all items\" — since the detail pane is not exclusively a calls list (it can represent merged work units including remote sessions).\n\n**Where it likely lives**\n- Frontend only: the single-page app in `public/index.html` (plain JS, hash routing, no build step). Specifically the mobile/responsive rendering of the **review** section's call detail pane — the section context describes a detail pane that becomes a modal-style overlay on small screens (guessing the mobile presentation; not spelled out in context). The back control and its label, plus the CSS media query governing the modal header, are all in `public/index.html` (or its inlined CSS/JS).\n- No backend/API involvement expected.\n\n**Design options & trade-offs**\n1. *Spacing fix*: increase the modal header's top padding (or add margin above the name/number block) in the mobile media query so the back button sits visually centred between the modal's top edge and the name/number. Trade-off: pure CSS, lowest risk; if the header wraps on small callers' names, prefer padding on the container over a fixed offset on the button.\n2. *Label rename*: change the button text from \"all calls\" to one of the reporter's suggestions. \"Back\" is clearest as an action label; \"all items\" is most accurate given merges include remote sessions. Trade-off: pick one — I'd recommend \"back\" for brevity on narrow screens, but note the reporter listed all three as acceptable.\n\n**Suggested approach**\n1. In `public/index.html`, locate the mobile view of the review detail pane and its back button (search for the current label string \"all calls\").\n2. Rename the label (\"back\" or \"all items\").\n3. Adjust the mobile CSS: add top padding to the detail header container so vertical space is distributed evenly between modal top edge → back button → name/number. Verify at ~360–414px widths.\n4. Check nothing else renders that same label string (e.g. other back navigation).\n\n**Acceptance criteria**\n- On a phone-width viewport, opening a call from the list shows the back button with clear, even spacing between the modal top edge and the caller name/number.\n- The button no longer reads \"all calls\"; it reads the chosen replacement (\"back\" or \"all items\").\n- Desktop layout unchanged.\n\n**Unverified assumptions**\n- That the detail pane appears as a modal overlay on mobile (reporter's word \"modal\") and the back button is part of its header.\n- No screenshot was attached, so the exact current label case/wording (\"all calls\") is taken from the report.\n- Choice among \"all\"/\"back\"/\"all items\" left to implementer; reporter accepted any.",
+    "usage": {
+      "input_tokens": 574,
+      "output_tokens": 856,
+      "cache_read_input_tokens": 1344,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Dean",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-19T12:45:55.962Z",
+  "updatedAt": "2026-08-19T12:45:55.962Z"
+}
