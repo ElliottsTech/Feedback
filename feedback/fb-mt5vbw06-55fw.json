@@ -1,0 +1,53 @@
+{
+  "id": "fb-mt5vbw06-55fw",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "Auto-dismiss pending review items after X working days",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Add an option to expire all pending items when they reach X number of working days old."
+    },
+    {
+      "role": "assistant",
+      "content": "Good idea — that'd help stop the Review queue clogging with stale calls. One thing would change how I write this up: when a pending item \"expires,\" what should happen to it — auto-approve and post the note to HaloPSA, or auto-dismiss/resolve it so it never posts (e.g. moved to a history/expired state)?"
+    },
+    {
+      "role": "user",
+      "content": "Dismiss it."
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — auto-dismiss without posting, with a configurable working-days threshold. That's clear enough for me to write up."
+    }
+  ],
+  "analysis": {
+    "summary": "Auto-dismiss pending review items after X working days",
+    "sections": [
+      "review",
+      "settings"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [],
+    "workarounds": [],
+    "developerBrief": "# Auto-expire pending review queue items after a configurable number of working days\n\n**What was reported:** The reporter wants an option to expire all pending items once they reach X working days old. When asked what \"expire\" means, the reporter confirmed items should be **dismissed** — auto-dismissed without posting to HaloPSA (not auto-approved).\n\n**Where it likely lives:**\n- `review` — Review queue (pending/history call list and call detail pane): the pending items themselves and whatever state marks a call as dismissed vs approved (history presumably already records a state per call).\n- `settings` — Settings: server settings: where the working-days threshold and enable/disable toggle would be configured.\n- Backend: the single Node.js service storing flat JSON under ./data; expiry would need a periodic job (or check-on-write) in the service, plus the WebSocket live-update push so the queue refreshes when items expire.\n- Frontend: public/index.html (plain JS, hash routing) — history/expired state presentation.\n\n**Design options and trade-offs:**\n1. **Background sweep job (recommended):** setInterval/cron-style job that runs periodically, finds pending items older than the threshold in working days, and marks them dismissed with a reason like \"auto-expired\". Pros: works even if nobody opens the portal; simple. Cons: one more timer to manage alongside existing background work (PBX webhooks, transcription).\n2. **Lazy expiry on read:** when the review queue is loaded, expire anything past threshold before returning. Pros: no new job. Cons: items never expire if nobody visits, and stats/exports could see stale pending counts.\n3. **Hybrid:** lazy check plus a scheduled sweep. Recommended only if reporting accuracy elsewhere (stats) matters.\n\n**Suggested approach:**\n1. Add settings fields: enable toggle + numeric working-days threshold (e.g. `autoExpire: { enabled, workingDays }`).\n2. Implement working-day calculation — note Australian MSP context: decide whether public holidays (state-specific) are in scope or just weekends; simplest defensible v1 is weekends-only, flag as configurable later.\n3. On expiry, set the item's state to the existing \"dismissed/never posted\" outcome, recording who/why (system, auto-expire, age at dismissal) so user-action logs (logs section) capture it.\n4. Push a WebSocket update so open portals refresh.\n5. Expose the setting in the settings UI.\n\n**Acceptance criteria:**\n- With the threshold set to N working days, a pending item older than N working days is automatically moved to a dismissed/never-posted state and appears in history marked as auto-expired.\n- No note is posted to HaloPSA for expired items.\n- Items under the threshold are untouched; the feature can be disabled.\n- Expiry events are visible in logs.\n\n**Unverified assumptions:**\n- \"Working days\" means Monday–Friday; reporter did not specify public-holiday handling or timezone (assumed Australian local server time).\n- Threshold is a single global value, not per-user or per-queue.\n- \"Dismissed\" maps to an existing dismissed state in the review/history flow; if none exists, one must be added.\n- Working-days age is measured from call time, not from when the item entered the pending queue.",
+    "usage": {
+      "input_tokens": 1350,
+      "output_tokens": 760,
+      "cache_read_input_tokens": 0,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Dean",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-23T13:54:11.526Z",
+  "updatedAt": "2026-08-23T13:54:11.526Z"
+}
