@@ -1,0 +1,26 @@
+{
+  "id": "fb-mtbalrqn-7a1i",
+  "org": "Elliotts Tech",
+  "kind": "feature",
+  "summary": "be able to copy and paste images directly to this report a Bug/Feature window instead of browsing or saving the edited i",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "be able to copy and paste images directly to this report a Bug/Feature window instead of browsing or saving the edited images"
+    },
+    {
+      "role": "assistant",
+      "content": "Straightforward one — you'd like the feedback window to accept images pasted straight from the clipboard (Ctrl+V / Cmd+V), so you can drop a screenshot without saving it to a file first. That's clear as is; if you'd also find drag-and-drop onto the window handy, feel free to add that before submitting.\n\nI have what I need — press Submit now."
+    }
+  ],
+  "analysis": null,
+  "by": "elliotts-tech-Faito",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-27T09:00:37.679Z",
+  "updatedAt": "2026-08-27T09:00:37.679Z"
+}
