@@ -1,0 +1,22 @@
+{
+  "id": "fb-mtcepqei-ev98",
+  "org": "Elliotts Tech",
+  "kind": "bug",
+  "summary": "SYNC GUARD TEST — fictional entry, safe to delete",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "SYNC GUARD TEST — fictional entry, safe to delete"
+    }
+  ],
+  "analysis": null,
+  "by": "elliotts-tech-Sync",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-28T03:43:27.210Z",
+  "updatedAt": "2026-08-28T03:43:27.211Z"
+}
