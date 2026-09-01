@@ -1,0 +1,79 @@
+{
+  "id": "fb-mtb8y0qn-7f0n",
+  "org": "Workgroup",
+  "kind": "feature",
+  "summary": "Andrews default filter is set to everyone.",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Andrews default filter is set to everyone."
+    },
+    {
+      "role": "assistant",
+      "content": "Just so I've got this straight — is the issue that when Andrew opens the Review queue, the technician filter on the call list keeps resetting to \"Everyone\" instead of remembering his own selection (or defaulting to him), so he sees everyone's calls?"
+    },
+    {
+      "role": "user",
+      "content": "yes"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — so the Review queue's filter isn't remembering his choice between visits. One thing that'd help narrow it down: does this happen for other technicians too, or just Andrew's account?"
+    },
+    {
+      "role": "user",
+      "content": "all techs. Chris says his are filtered to his when he logs in, but others are saying they have to filter each time."
+    },
+    {
+      "role": "assistant",
+      "content": "That's enough for me to work with, thanks. My best read: the Review queue's filter is probably saved per-browser (e.g. in local storage) rather than per-user on the server, so techs on shared machines, new browsers, or cleared data lose their setting — while Chris's happens to have stuck. Worth checking whether the ones losing it use different browsers or the companion app/PWA, where storage can be isolated. You can press Submit now and I'll pass this on."
+    }
+  ],
+  "analysis": {
+    "summary": "Technician filter on Review queue not saved per-user server-side",
+    "sections": [
+      "review",
+      "users"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [
+      {
+        "cause": "Technician filter preference stored client-side (localStorage) per browser rather than persisted server-side per user account",
+        "confidence": "medium"
+      },
+      {
+        "cause": "No default-to-self logic tied to logged-in user identity, so filter falls back to 'Everyone' on new sessions/browsers",
+        "confidence": "medium"
+      }
+    ],
+    "workarounds": [
+      "Techs manually re-select their name in the filter each session",
+      "Use the same browser/profile consistently to retain any local storage-based setting"
+    ],
+    "developerBrief": "# Feature: Persist/default Review queue technician filter per user\n\n**Reported:** Andrew's (and most other techs') technician filter on the Review queue defaults to 'Everyone' every session, forcing them to re-filter each time. One tech (Chris) reports his filter does stick. Reporter confirms this happens for all techs, not just Andrew.\n\n**Where it likely lives:** `review` section — the call list's technician filter control (frontend, public/index.html) and possibly the GET /api/reviews query params. Also `users` section, since the filter should presumably default to the logged-in user's own technician identity, which is derived from the extension directory (src/users.js, src/extension-dir.js, src/auth.js).\n\n**Reproduction (assumed):**\n1. Log in as a technician other than Chris.\n2. Go to Review queue, filter to self.\n3. Reload/re-login later.\n4. Filter has reset to 'Everyone'.\nChris's account does not exhibit this — suggesting the persistence mechanism is inconsistent or account-specific.\n\n**Design options:**\n1. **Persist filter server-side per user** — store last-used technician filter (or a default-to-self preference) in the user record (src/users.js) and return/apply it on load of GET /api/reviews. Robust across browsers/devices; recommended given it's an MSP with shared machines and companion apps/PWA where localStorage is isolated per install.\n2. **Keep client-side but fix bug** — if a localStorage/sessionStorage key is already used but not being set/read consistently (explains why Chris works but others don't), find and fix that logic in the frontend JS. Lower effort but won't survive browser/profile changes, cache clears, or shared machines.\n3. **Hybrid**: default the filter to 'self' based on logged-in user's technician identity unless explicitly overridden, with the override remembered server-side.\n\nOption 1 or 3 recommended — the multi-device/shared-machine environment (PWA, companion apps) common at this MSP makes client-only storage unreliable, consistent with why only one tech (Chris) 'happens to have it stick'.\n\n**Suggested approach:**\n1. Inspect current frontend logic for how the technician filter's selection is stored/restored (localStorage key vs. server-fetched default) — this explains the Chris anomaly.\n2. Check whether GET /api/reviews or /api/technicians already returns anything about the requesting user's identity/default.\n3. Add a server-side preference field (e.g. on the user record via src/users.js) for 'default technician filter', settable via a small PATCH or inferred automatically as 'self' unless the user has explicitly chosen 'Everyone'.\n4. Update frontend to read this default on load and persist changes back to the server instead of (or in addition to) local storage.\n\n**Acceptance criteria:**\n- On login, the Review queue technician filter defaults to the logged-in technician's own calls (or their last explicit choice), regardless of browser/device.\n- Setting persists across sessions, browsers, and devices for the same user.\n- Explicit selection of 'Everyone' is respected until changed again.\n\n**Unverified assumptions:**\n- That a client-side storage mechanism (e.g. localStorage) is currently used at all for this filter — not confirmed from section context, inferred from behavior described.\n- That Chris's persistence 'sticking' is due to browser/profile continuity rather than some other per-account setting.\n- Whether users want the default to be 'self' automatically, or just for their last choice to be remembered.",
+    "usage": {
+      "input_tokens": 3372,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 1420,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "service_tier": "standard",
+      "inference_geo": "global"
+    }
+  },
+  "by": "workgroup-elliotts-tech-Dean",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-27T08:14:09.983Z",
+  "updatedAt": "2026-09-01T14:58:57.541Z"
+}
