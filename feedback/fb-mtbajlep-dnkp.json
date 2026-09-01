@@ -1,0 +1,52 @@
+{
+  "id": "fb-mtbajlep-dnkp",
+  "org": "Workgroup",
+  "kind": "feature",
+  "summary": "be able to copy and paste images directly to this report a Bug/Feature window instead of browsing or saving the edited i",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "be able to copy and paste images directly to this report a Bug/Feature window instead of browsing or saving the edited images"
+    },
+    {
+      "role": "assistant",
+      "content": "Straightforward one — you'd like the feedback window to accept images pasted straight from the clipboard (Ctrl+V / Cmd+V), so you can drop a screenshot without saving it to a file first. That's clear as is; if you'd also find drag-and-drop onto the window handy, feel free to add that before submitting.\n\nI have what I need — press Submit now."
+    }
+  ],
+  "analysis": {
+    "summary": "Allow pasting images from clipboard into feedback/bug report window",
+    "sections": [
+      "feedback"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [],
+    "workarounds": [
+      "Save clipboard image to a file, then use the existing file browse/upload control"
+    ],
+    "developerBrief": "# Feature: Support clipboard paste (and optionally drag-and-drop) of images in Feedback window\n\n**What was reported**\nReporter wants to paste an image directly into the Bug/Feature report window (Ctrl+V / Cmd+V) instead of having to save the image to disk and browse for it. Intake assistant also suggested drag-and-drop as an optional addition.\n\n**Where it likely lives**\nThe `feedback` section — the bug-report/feature-request UI and its intake assistant, part of the single-page frontend (public/index.html, hash-routed, plain JS). Likely involves whatever file-upload/attachment control currently exists for this form; exact markup/handler not available from provided context (guessing based on section index only).\n\n**Reproduction**\nN/A (feature request, not a bug). Current behavior: user must save an edited image to a file, then browse to select it for upload in the feedback form.\n\n**Design options**\n1. Add a `paste` event listener on the feedback textarea/window that reads `event.clipboardData.items`, detects image MIME types, and converts to a Blob/File to attach — same code path as the existing file-input attachment handling. Low complexity if an attachment upload path already exists.\n2. Extend the same feature to support drag-and-drop (`dragover`/`drop` events) reusing the same attach-file pipeline, per the intake assistant's suggestion. Slightly larger scope but shares plumbing with paste support.\n3. Do both in one pass since they converge on the same 'accept a File/Blob and attach it' internal API.\n\n**Suggested approach**\n1. Inspect current feedback form implementation in public/index.html to find the existing file/browse attachment mechanism and its upload endpoint.\n2. Add clipboard paste handling that extracts image data and funnels it through the same attach/upload function used by the file browser.\n3. Optionally add drag-and-drop handling using the same pipeline.\n4. Add visual affordance/hint in the UI (e.g., \"paste or drag an image here\") so users discover the feature.\n\n**Acceptance criteria**\n- Pasting an image from clipboard while focused in/near the feedback report window attaches it to the report, without requiring a save-to-file/browse step.\n- Attached pasted images behave identically to browsed file attachments (preview, removal, submission).\n- (Optional/stretch) Dragging an image file onto the feedback window attaches it the same way.\n\n**Unverified assumptions**\n- Assumes the feedback form already supports image attachments via file browse (implied by reporter's phrasing \"instead of browsing\"), but the exact upload endpoint/component was not confirmed via section context.\n- Assumes single active feedback window/textarea target for paste events; no confirmation of whether multiple attachments are currently supported.",
+    "usage": {
+      "input_tokens": 2091,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 1047,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "service_tier": "standard",
+      "inference_geo": "global"
+    }
+  },
+  "by": "workgroup-elliotts-tech-Faito",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "createdAt": "2026-08-27T08:58:56.161Z",
+  "updatedAt": "2026-09-01T14:58:33.990Z"
+}
