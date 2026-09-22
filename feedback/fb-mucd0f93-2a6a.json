@@ -1,0 +1,51 @@
+{
+  "id": "fb-mucd0f93-2a6a",
+  "org": "Elliotts Tech",
+  "kind": "bug",
+  "summary": "My Screenconnect logs are not recorded.",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "My Screenconnect logs are not recorded."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks — just so I understand: when you say the ScreenConnect logs aren't recorded, do you mean remote sessions are missing from the **logs** section entirely, or they appear but with missing/blank details?"
+    },
+    {
+      "role": "user",
+      "content": "no screenconnect logs at all call logs are working"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — call logs fine, ScreenConnect remote sessions never showing at all. Has this ever worked for you (i.e. sessions used to appear and have stopped), or is it a fresh setup that's never logged a session?\n\nMy best guess while you answer: the service learns about ScreenConnect sessions via a webhook from ScreenConnect itself, so if nothing at all is appearing, the most likely causes are the webhook not being configured or pointing at the wrong URL in **settings**, or an authentication/extension filter on the ScreenConnect side silently rejecting events. Worth checking the system log in **logs** around a recent session time for any incoming-event errors."
+    },
+    {
+      "role": "user",
+      "content": "it was working yesterday but not today."
+    },
+    {
+      "role": "assistant",
+      "content": "That's helpful — a clean break overnight points to something changing rather than a setup fault. Do you know if the service self-updated or restarted recently (the version footer in the **portal** shell shows update status), or whether anyone touched the ScreenConnect settings yesterday?\n\nWorth trying in the meantime: check the system log under **logs** for entries around a session time today — if webhooks are arriving but failing to be written, there'll be an error there, whereas silence suggests ScreenConnect has stopped sending them (expired credential or a machine/screenconnect service issue on its side)."
+    },
+    {
+      "role": "user",
+      "content": "I did update the version earlier"
+    },
+    {
+      "role": "assistant",
+      "content": "That's very likely the story then — it worked yesterday, you updated, and today sessions aren't recorded, which points to the update breaking something in how the service receives or stores ScreenConnect webhooks. Worth trying: restart the service once and re-run a test session, and glance at the system log under **logs** for webhook entries today — that will tell the developer whether events are arriving and being dropped, or never arriving.\n\nI have what I need — you can press Submit now, and feel free to add anything else (like the version you updated from/to) first if you have it handy."
+    }
+  ],
+  "analysis": null,
+  "by": "elliotts-tech-Camille",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "url": "https://wr.etapps.au/#/review?tab=pending&tech=500",
+  "createdAt": "2026-09-22T07:35:29.079Z",
+  "updatedAt": "2026-09-22T07:35:29.079Z"
+}
