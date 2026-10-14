@@ -1,0 +1,79 @@
+{
+  "id": "fb-mv7de1de-fdjh",
+  "org": "Elliotts Tech",
+  "kind": "bug",
+  "summary": "Screenconnect recording is still not working.",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Screenconnect recording is still not working."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks — \"still not working\" suggests this one's been chased before, so let me pin down where it's breaking. When a ScreenConnect session ends, does the session itself show up under Logs → Remote sessions, and it's just the recording that's missing — or is nothing appearing at all?"
+    },
+    {
+      "role": "user",
+      "content": "no logs at all"
+    },
+    {
+      "role": "assistant",
+      "content": "Nothing in Remote sessions at all usually points upstream — the service never hears about the session in the first place. When a session ends, do you see anything appear in Logs → System (that's where webhook hits get recorded), or is that blank too?"
+    },
+    {
+      "role": "user",
+      "content": "no prompts or logs"
+    },
+    {
+      "role": "assistant",
+      "content": "That's clear enough for me to file. My best read: since nothing lands anywhere — no session logs, no system log entries, no companion-app prompts — the service almost certainly never receives the ScreenConnect event in the first place. That points at the ScreenConnect side rather than the portal: most likely the ScreenConnect extension/trigger that posts session events to this service is missing, disabled, or pointing at a stale webhook URL (worth double-checking after any self-updates or URL changes, under Settings). Worth trying a test session and watching Logs → System for any incoming hit — if nothing appears there, the event is being dropped before it reaches us.\n\nI have what I need — go ahead and press Submit, and feel free to add anything else first if I've misread it."
+    }
+  ],
+  "analysis": {
+    "summary": "ScreenConnect events never arrive: no Remote sessions or System webhook-log entries",
+    "sections": [
+      "logs",
+      "settings"
+    ],
+    "clarifyingQuestions": [],
+    "likelyCauses": [
+      {
+        "cause": "ScreenConnect-side trigger/extension that posts session events to this service is missing, disabled, or pointing at a stale/incorrect webhook URL — the event never leaves ScreenConnect",
+        "confidence": "high"
+      },
+      {
+        "cause": "ScreenConnect server never generates the event at all (recording disabled on the host/session, or trigger scoped to the wrong session type)",
+        "confidence": "medium"
+      },
+      {
+        "cause": "Event reaches the service but is rejected before logging (route path mismatch or auth rejection at the express layer, e.g. after a self-update) so it never reaches the System log",
+        "confidence": "low"
+      }
+    ],
+    "workarounds": [
+      "Run a short test ScreenConnect session while watching Logs → System — a hit proves delivery; total silence points at the ScreenConnect side",
+      "In Settings, check the webhook registration status and confirm the URL the service expects matches what the ScreenConnect extension/trigger posts (especially after any self-update or hostname change)",
+      "If accessible, check the ScreenConnect server's own extension/trigger logs for failed POST attempts to this service"
+    ],
+    "developerBrief": "# ScreenConnect session events never reach the service — nothing in Remote sessions or System log\n\n## What was reported\nReporter says ScreenConnect recording is \"still not working\" (implies a previously chased issue; prior history not available here). On checking: no entries at all in Logs → Remote sessions for ended sessions, and no prompts or logs in Logs → System either — i.e. no evidence the service ever receives a ScreenConnect event. No screenshot attached.\n\n## Where it likely lives\n- **Logs** section — Remote sessions and System sub-tabs. Key files: `src/log.js`, `src/webhook-log.js`, `src/screenconnect.js`, `src/ninjaone.js`.\n- **Settings** section — webhook registration status (`GET /api/webhooks`), key files `src/settings.js`, `src/updater.js`.\n- The primary suspect is outside this repo: the ScreenConnect server-side extension/trigger that POSTs session events here.\n\n## Reproduction (as understood; assumptions flagged)\n1. Start and end a ScreenConnect session (assumed: on a host/session type expected to be recorded).\n2. Check Logs → Remote sessions — reporter observes no entry (expected: a session record).\n3. Check Logs → System — reporter observes no entry (expected: a webhook-hit record; per the logs section, webhook hits and errors land here).\n4. **Assumed, not verified:** the System log itself is healthy — i.e. other events (PBX CDR webhook hits) still appear. If the whole log pipeline is down, the hypothesis space changes.\n\n## Ranked hypotheses\n1. **(high) ScreenConnect trigger/extension missing, disabled, or stale URL.** Zero System-log entries is the strongest signal: every incoming webhook hit is recorded there. A self-update redeploy or URL/hostname change could have invalidated the URL the trigger posts to.\n2. **(medium) No event is ever produced.** The ScreenConnect server may not be emitting/recording the session (recording disabled, trigger scoped to wrong session type), so nothing is sent.\n3. **(low) Delivery happens but dies before logging.** Path/auth rejection at the express layer or a route mismatch after an update could drop the request before `src/webhook-log.js` records it. Less likely because hits *and* errors normally land in the System log, but must be ruled out.\n\n## Suggested approach\n1. Determine the exact URL and registration state this service expects for ScreenConnect: inspect `GET /api/webhooks` and `src/settings.js`; confirm the public URL still resolves (reverse proxy / hostname / port after self-updates).\n2. Harden edge visibility: ensure every request hitting the ScreenConnect route — including malformed, unauthorized, and unmatched-path requests — writes a System log entry via `src/webhook-log.js` (an express-level 404/error catch if not already present), so hypothesis 3 becomes observable.\n3. Review the ingest path in `src/screenconnect.js`: expected payload shape, validation, auth; confirm a rejected payload still logs with a reason.\n4. Compare with the ScreenConnect host: the extension/trigger must be installed, enabled, and pointing at the current URL; its own logs will show failed POSTs. This step happens outside the repo.\n5. Controlled test: start/end a short session while tailing Logs → System; capture hit, error, or silence.\n\n## Acceptance criteria\n- Ending a ScreenConnect session produces a System log entry (webhook hit) **and** a Remote sessions entry.\n- Malformed/rejected/unmatched requests to the ScreenConnect endpoint still appear in the System log with a reason.\n- Settings → webhooks surfaces the correct ScreenConnect URL and registration status, so a stale URL is detectable from the portal.\n- The recording itself is retrievable/attached per existing session behaviour once events flow again.\n\n## Unverified assumptions\n- The System log is functioning for other sources (PBX CDRs) — reporter only confirmed ScreenConnect events are absent.\n- \"Still not working\" refers to an earlier report; its diagnosis/fix attempts are unknown and may already cover some steps above.\n- A ScreenConnect trigger/extension was previously set up and expected to exist (vs. never configured).\n- \"No prompts\" includes companion-app alerts being absent, as the intake read it.\n- ScreenConnect server configuration is not visible from this repo; confirming the trigger's enablement and URL must happen on the ScreenConnect host.",
+    "usage": {
+      "input_tokens": 463,
+      "output_tokens": 3611,
+      "cache_read_input_tokens": 1536,
+      "server_tool_use": {
+        "web_search_requests": 0
+      },
+      "service_tier": "standard"
+    }
+  },
+  "by": "elliotts-tech-Camille",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "url": "https://wr.etapps.au/#/review?tab=pending&tech=500",
+  "createdAt": "2026-10-14T00:26:55.730Z",
+  "updatedAt": "2026-10-14T00:27:58.198Z"
+}
