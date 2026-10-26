@@ -1,0 +1,55 @@
+{
+  "id": "fb-mvopedcc-1xvn",
+  "org": "Elliotts Tech",
+  "kind": "bug",
+  "summary": "still say in session",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "still say in session"
+    },
+    {
+      "role": "assistant",
+      "content": "Sounds like something is stuck showing \"in session\" — just to make sure I've got it: are you seeing a call in the review queue that still says \"in session\" even though the call has long finished, and did it ever move on to a summary or did it stay stuck there for good?"
+    },
+    {
+      "role": "user",
+      "content": "Yes"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — a call that finished but is stuck showing \"in session\" in the review queue. One last thing: does this happen on every call, or only occasionally (e.g. after the service restarts mid-call or a particular PBX)?\n\nMy best guess meanwhile: the session-end event either never arrives or fails to match the original call — e.g. the PBX's final CDR webhook wasn't sent, or the call ID it references doesn't line up, so the status never gets flipped to \"awaiting review\". Worth trying: replaying the webhook from the PBX side or restarting the service if you haven't already."
+    },
+    {
+      "role": "user",
+      "content": "ScreenConnect session is not being detected"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, that reframes it — the \"in session\" you mentioned is a ScreenConnect remote-support session that isn't being detected properly. Does the session show up anywhere at all in the remote-session logs, or is nothing arriving from ScreenConnect in the first place?\n\nMy best guess: if nothing's in the logs, the ScreenConnect extension/webhook isn't firing or isn't reaching the service (worth checking its event URL matches what's configured under Settings); if sessions appear in logs but not where you expect, it's more likely a matching issue on our side."
+    },
+    {
+      "role": "user",
+      "content": "pls close the session thank you"
+    },
+    {
+      "role": "assistant",
+      "content": "I can't close the session myself — but you can submit this report now and the team will look into it. Your report covers: a ScreenConnect remote session stuck showing \"in session\" and not being detected properly.\n\nPress Submit whenever you're ready."
+    },
+    {
+      "role": "user",
+      "content": "pls close the session thank you"
+    }
+  ],
+  "analysis": null,
+  "by": "elliotts-tech-Akito",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "url": "https://wr.etapps.au/#/review?tab=pending&tech=507&call=79b1d16a-886c-43bc-bf6a-62a603452ca4",
+  "createdAt": "2026-10-26T03:35:11.628Z",
+  "updatedAt": "2026-10-26T03:35:11.628Z"
+}
