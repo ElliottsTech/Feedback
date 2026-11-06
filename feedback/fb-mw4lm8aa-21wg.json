@@ -1,0 +1,27 @@
+{
+  "id": "fb-mw4lm8aa-21wg",
+  "org": "Elliotts Tech",
+  "kind": "bug",
+  "summary": "please close this session",
+  "status": "new",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "please close this session"
+    },
+    {
+      "role": "assistant",
+      "content": "No worries — I'll stop here. If you'd like, you can still press Submit to send what you've written so far, or simply close the window to discard it."
+    }
+  ],
+  "analysis": null,
+  "by": "elliotts-tech-Akito",
+  "votes": {
+    "up": [],
+    "down": []
+  },
+  "comments": [],
+  "url": "https://wr.etapps.au/#/review?tab=pending&tech=507&call=02b807ec-de16-4df0-8a9e-8af9b294978f",
+  "createdAt": "2026-11-06T06:33:38.674Z",
+  "updatedAt": "2026-11-06T06:33:38.674Z"
+}
